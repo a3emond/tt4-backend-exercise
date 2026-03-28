@@ -2,8 +2,8 @@
 (last updated: 2026-03-28)
 
 ## execution demo file:
-[markdown version here](./docs/LAB_2_%20Execution.md)
-[PDF vershion here](./docs/LAB_2_%20Execution.pdf)
+- [markdown version here](./docs/LAB_2_%20Execution.md)
+- [PDF vershion here](./docs/LAB_2_%20Execution.pdf)
 
 ## usage: 
 - create `.env` from `.env.example` for dev config
