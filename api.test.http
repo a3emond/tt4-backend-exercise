@@ -1,0 +1,194 @@
+@baseUrl = http://localhost:3000
+
+###
+# 1. REGISTER USERS
+###
+
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "email": "alice@test.com",
+  "password": "password123"
+}
+
+###
+
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Bob",
+  "email": "bob@test.com",
+  "password": "password123"
+}
+
+###
+# 2. LOGIN USERS
+###
+
+# @name loginAlice
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@test.com",
+  "password": "password123"
+}
+
+###
+
+# @name loginBob
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "bob@test.com",
+  "password": "password123"
+}
+
+###
+# TOKENS
+###
+
+@aliceToken = {{loginAlice.response.body.token}}
+@bobToken = {{loginBob.response.body.token}}
+
+###
+# 3. GET ASSIGNABLE USERS (Alice)
+###
+
+# @name getUsers
+GET {{baseUrl}}/users/assignable
+Authorization: Bearer {{aliceToken}}
+
+###
+# Extract Bob ID automatically (index 0 = first user not Alice)
+###
+
+@bobId = {{getUsers.response.body[0]._id}}
+
+###
+# 4. CREATE TASKS (Alice)
+###
+
+# @name createTask1
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{aliceToken}}
+Content-Type: application/json
+
+{
+  "title": "Alice Task 1",
+  "description": "Owned by Alice",
+  "priority": "high"
+}
+
+###
+
+# @name createTask2
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{aliceToken}}
+Content-Type: application/json
+
+{
+  "title": "Alice Task 2",
+  "description": "To assign"
+}
+
+###
+# 5. CREATE TASK (Bob)
+###
+
+# @name createTask3
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{bobToken}}
+Content-Type: application/json
+
+{
+  "title": "Bob Task 1",
+  "description": "Owned by Bob"
+}
+
+###
+# TASK IDS
+###
+
+@task1Id = {{createTask1.response.body._id}}
+@task2Id = {{createTask2.response.body._id}}
+@task3Id = {{createTask3.response.body._id}}
+
+###
+# 6. ASSIGN TASK (Alice → Bob)
+###
+
+PATCH {{baseUrl}}/tasks/{{task2Id}}/assign
+Authorization: Bearer {{aliceToken}}
+Content-Type: application/json
+
+{
+  "assignedUserId": "{{bobId}}"
+}
+
+###
+# 7. GET ALL TASKS
+###
+
+GET {{baseUrl}}/tasks
+Authorization: Bearer {{aliceToken}}
+
+###
+
+GET {{baseUrl}}/tasks
+Authorization: Bearer {{bobToken}}
+
+###
+# 8. GET FILTERED
+###
+
+GET {{baseUrl}}/tasks/mine
+Authorization: Bearer {{aliceToken}}
+
+###
+
+GET {{baseUrl}}/tasks/assigned
+Authorization: Bearer {{bobToken}}
+
+###
+# 9. UPDATE TASK (Alice)
+###
+
+PATCH {{baseUrl}}/tasks/{{task1Id}}
+Authorization: Bearer {{aliceToken}}
+Content-Type: application/json
+
+{
+  "done": true,
+  "priority": "medium"
+}
+
+###
+# 10. FORBIDDEN UPDATE (Bob → Alice task)
+###
+
+PATCH {{baseUrl}}/tasks/{{task1Id}}
+Authorization: Bearer {{bobToken}}
+Content-Type: application/json
+
+{
+  "title": "Hacked"
+}
+
+###
+# 11. DELETE TASK (Alice)
+###
+
+DELETE {{baseUrl}}/tasks/{{task1Id}}
+Authorization: Bearer {{aliceToken}}
+
+###
+# 12. FORBIDDEN DELETE (Bob)
+###
+
+DELETE {{baseUrl}}/tasks/{{task2Id}}
+Authorization: Bearer {{bobToken}}
