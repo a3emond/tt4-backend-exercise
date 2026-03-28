@@ -67,7 +67,7 @@ Authorization: Bearer {{aliceToken}}
 # Extract Bob ID automatically (index 0 = first user not Alice)
 ###
 
-@bobId = {{getUsers.response.body[0]._id}}
+@bobId = {{getUsers.response.body.$[0]._id}}
 
 ###
 # 4. CREATE TASKS (Alice)
